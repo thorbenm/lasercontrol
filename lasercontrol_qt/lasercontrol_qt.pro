@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2017-03-09T10:05:27
+# Project created by QtCreator 2017-03-09T12:52:04
 #
 #-------------------------------------------------
 
@@ -13,9 +13,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    spi.cpp
+        mainwindow.cpp
 
 HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
+
+LIBS += -lwiringPi

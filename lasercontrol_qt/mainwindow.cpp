@@ -10,8 +10,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    setup();
-    transmit_voltage(current_to_voltage(0));
     delete ui;
 }
 
