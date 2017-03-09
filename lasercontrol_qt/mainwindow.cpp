@@ -10,5 +10,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    setup();
+    transmit_voltage(current_to_voltage(0));
     delete ui;
+}
+
+void MainWindow::on_on_button_clicked()
+{
+    transmit_voltage(current_to_voltage(45));
+}
+
+void MainWindow::on_off_button_clicked()
+{
+    transmit_voltage(current_to_voltage(0));
 }

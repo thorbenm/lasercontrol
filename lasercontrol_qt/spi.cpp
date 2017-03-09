@@ -53,23 +53,23 @@ void setup(){
 	std::cout << "Input Current, please:\n" ; 
 }
 
-int main (void){
-	setup();
-	auto start = std::chrono::high_resolution_clock::now();
-
-	double input = 0;
-	double old_input = 0;
-
-	for (;;){
-		std::cin >> input;
-		if(!(sine_fade(current_to_voltage(old_input),current_to_voltage(input)))){
-			break;
-		}
-		old_input = input;
-	}
-	transmit_voltage(0);
-	return 0 ;
-}
+//int main (void){
+//	setup();
+//	auto start = std::chrono::high_resolution_clock::now();
+//
+//	double input = 0;
+//	double old_input = 0;
+//
+//	for (;;){
+//		std::cin >> input;
+//		if(!(sine_fade(current_to_voltage(old_input),current_to_voltage(input)))){
+//			break;
+//		}
+//		old_input = input;
+//	}
+//	transmit_voltage(0);
+//	return 0 ;
+//}
 
 bool voltage_out_of_range(double voltage){
 	if(max_voltage < voltage){
