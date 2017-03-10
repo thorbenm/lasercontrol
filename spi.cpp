@@ -23,6 +23,10 @@ double current_to_voltage(double);
 
 double voltage_to_current(double voltage);
 
+double abs(double input){
+	return (input > 0.0)? input: -input;
+}
+
 
 //contrain:
 double min_voltage = current_to_voltage(50);
@@ -35,10 +39,7 @@ const int LDAC = 6; //pi pin used for LDAC control
 
 
 double voltage_step = abs(dac_min_voltage - dac_max_voltage) / (double) 0xFFFF;
-
-
-
-
+double current_step = abs(voltage_to_current(voltage_step));
 
 
 
@@ -59,6 +60,8 @@ int main (void){
 
 	double input = 0;
 	double old_input = 0;
+
+	std::cout << "voltage_step = " << voltage_step << "\ncurrent_step = " << current_step << std::endl;
 
 	for (;;){
 		std::cin >> input;
