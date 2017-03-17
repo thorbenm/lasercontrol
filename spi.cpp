@@ -51,7 +51,8 @@ void setup(){
 
 	transmit_voltage(0);
 
-	std::cout << "Input Current, please:\n" ; 
+	std::cout << "voltage_step = " << voltage_step << " V\ncurrent_step = " << current_step << " mA\n\n";
+	std::cout << "Input Current:\n" ; 
 }
 
 int main (void){
@@ -60,8 +61,6 @@ int main (void){
 
 	double input = 0;
 	double old_input = 0;
-
-	std::cout << "voltage_step = " << voltage_step << "\ncurrent_step = " << current_step << std::endl;
 
 	for (;;){
 		std::cin >> input;
