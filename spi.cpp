@@ -4,6 +4,8 @@
 #include <math.h>
 #include <iostream>
 #include <chrono>
+#include <fstream>
+
 
 // header:
 
@@ -29,7 +31,7 @@ double abs(double input){
 
 
 //contrain:
-double min_voltage = current_to_voltage(50);
+double min_voltage = current_to_voltage(100);
 double max_voltage = .001;
 
 //DAC Parameter:
@@ -51,7 +53,7 @@ void setup(){
 
 	transmit_voltage(0);
 
-	std::cout << "voltage_step = " << voltage_step << " V\ncurrent_step = " << current_step << " mA\n\n";
+//	std::cout << "voltage_step = " << voltage_step << " V\ncurrent_step = " << current_step << " mA\n\n";
 	std::cout << "Input Current:\n" ; 
 }
 
@@ -70,6 +72,17 @@ int main (void){
 		old_input = input;
 	}
 	transmit_voltage(0);
+
+//	std::ifstream infile("/dev/ttyACM0");
+//		if(!infile.is_open()){
+//			return -1;
+//		}
+//	int a;
+//	for(int j = 0; infile >> a; j++){
+//		if(j%100 == 0){
+//			std::cout << (int) time_since(start) << ":\t" << a << std::endl;
+//		}
+//	}
 	return 0 ;
 }
 
@@ -177,7 +190,7 @@ bool sine_fade(double from, double to, double time, uint8_t device, unsigned int
 
 
 double current_to_voltage(double current){
-	return - current * 0.05246298729; 
+	return - current * 0.05246298729 * 50.0 / 53.9; 
 }
 
 double voltage_to_current(double voltage){
