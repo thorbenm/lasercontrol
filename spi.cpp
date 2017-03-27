@@ -4,22 +4,25 @@
 #include <math.h>
 #include <iostream>
 #include <chrono>
-#include <fstream>
 
 
 // header:
 
+double map(double,double,double,double,double);
+
 uint16_t voltage_to_code(double voltage);
+
+double code_to_voltage(uint16_t code);
 
 double time_since(auto input);
 
-bool transmit(uint16_t code = 0, uint8_t device = 3, unsigned int channel = 0);
+void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int channel = 0);
 
-bool transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int channel = 0);
+void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int channel = 0);
 
-bool fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
+//void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
 
-bool sine_fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
+void sine_fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
 
 double current_to_voltage(double);
 
@@ -35,15 +38,19 @@ double min_voltage = current_to_voltage(100);
 double max_voltage = .001;
 
 //DAC Parameter:
-double dac_min_voltage = 10; // dac output at minimum input
-double dac_max_voltage = -10;  // dac output at maximum input   BEWARE ORIENTATION!!!
+int bits = 16;
+double dac_min_voltage = 10; // dac output at transmitting 0;
+double dac_max_voltage = -10;  // dac output at transmitting 2^bits (hightest value)   BEWARE ORIENTATION!!!
 const int LDAC = 6; //pi pin used for LDAC control
 
 
-double voltage_step = abs(dac_min_voltage - dac_max_voltage) / (double) 0xFFFF;
+
+double resolution = pow(2.0, (double) bits) - 1.0;
+double voltage_step = abs(dac_min_voltage - dac_max_voltage) / (double) pow(2.0, (double) bits);
 double current_step = abs(voltage_to_current(voltage_step));
 
-
+double input = 0;
+double old_input = 0;
 
 void setup(){
 	wiringPiSPISetup (0, 32000000) ;
@@ -53,56 +60,56 @@ void setup(){
 
 	transmit_voltage(0);
 
-//	std::cout << "voltage_step = " << voltage_step << " V\ncurrent_step = " << current_step << " mA\n\n";
 	std::cout << "Input Current:\n" ; 
 }
 
+void loop(){
+	std::cin >> input;
+	sine_fade(current_to_voltage(old_input),current_to_voltage(input));
+	old_input = input;
+}
+
 int main (void){
-	setup();
 	auto start = std::chrono::high_resolution_clock::now();
 
-	double input = 0;
-	double old_input = 0;
+	setup();
 
 	for (;;){
-		std::cin >> input;
-		if(!(sine_fade(current_to_voltage(old_input),current_to_voltage(input)))){
-			break;
-		}
-		old_input = input;
+		loop();
 	}
-	transmit_voltage(0);
-
-//	std::ifstream infile("/dev/ttyACM0");
-//		if(!infile.is_open()){
-//			return -1;
-//		}
-//	int a;
-//	for(int j = 0; infile >> a; j++){
-//		if(j%100 == 0){
-//			std::cout << (int) time_since(start) << ":\t" << a << std::endl;
-//		}
-//	}
 	return 0 ;
 }
 
-bool voltage_out_of_range(double voltage){
-	if(max_voltage < voltage){
+void voltage_in_range(double voltage){
+	if(max_voltage < voltage || voltage < min_voltage){
 		std::cerr << "Voltage / Current out of Range\nProgramme will be closed \n";
-		return 1;
+		transmit_voltage(0);
+		exit(0);
 	}
-	else if(voltage < min_voltage){
-		std::cerr << "Voltage / Current out of Range\nProgramme will be closed \n";
-		return 1;
+}
+
+double map(double value, double fromLow, double fromHigh, double toLow, double toHigh){
+	if(fromLow == fromHigh){
+		std::cerr << "mapping not possible\n";
+		exit(0);
 	}
-	else
-		return 0;
+	if(toLow == toHigh){
+		std::cerr << "mapping not possible\n";
+		exit(0);
+	}
+	return value * (toHigh - toLow) / (fromHigh - fromLow) + toHigh - (toHigh - toLow) / (fromHigh - fromLow) * fromHigh; 
 }
 
 uint16_t voltage_to_code(double voltage){
-	double value = voltage * 0xFFFF / (dac_max_voltage - dac_min_voltage) + 0xFFFF - 0xFFFF / (dac_max_voltage - dac_min_voltage) * dac_max_voltage; 
+	double value = map(voltage, dac_min_voltage, dac_max_voltage, 0.0 , resolution); 
 	uint16_t code = (uint16_t) value;
 	return code;
+}
+
+double code_to_voltage(uint16_t code){
+	double value = (double) code;
+	value = map(value, 0.0 , resolution, dac_min_voltage, dac_max_voltage); 
+	return value;
 }
 
 
@@ -118,7 +125,8 @@ double time_since(auto input){
 	return time1;
 }
 
-bool transmit(uint16_t code, uint8_t device, unsigned int channel){
+void transmit(uint16_t code, uint8_t device, unsigned int channel){
+	voltage_in_range(code_to_voltage(code));
 	uint8_t code1 = code >> 8;
 	uint8_t code2 = code & 0xFF;
 	wiringPiSPIDataRW (channel, (unsigned char*)&device, sizeof(device));
@@ -127,65 +135,50 @@ bool transmit(uint16_t code, uint8_t device, unsigned int channel){
 	digitalWrite (LDAC,LOW);
 //	delayMicroseconds(1);
 	digitalWrite (LDAC,HIGH);
-	return 1;
 }
 
-bool transmit_voltage(double voltage, uint8_t device, unsigned int channel){
-	if(voltage_out_of_range(voltage)){
-		return 0;
-	}
+void transmit_voltage(double voltage, uint8_t device, unsigned int channel){
 	transmit(voltage_to_code(voltage), device, channel);
-	return 1;
 }
 
-bool fade(double from, double to, double time, uint8_t device, unsigned int channel){
-	if(voltage_out_of_range(to)){
-		return 0;
-	}
-	if(voltage_out_of_range(from)){
-		return 0;
-	}
-	auto function_start = std::chrono::high_resolution_clock::now(); 
-	double voltage;
-	if(from < to){
-		do{
-			voltage = from + (to - from) / time * time_since(function_start); 
-			if(!(transmit_voltage(voltage, device, channel))){
-				return 0;
-			}
-		}while(voltage < to);
-	}
-	else{
-		do{
-			voltage = from + (to - from) / time * time_since(function_start); 
-			if(!(transmit_voltage(voltage, device, channel))){
-				return 0;
-			}
-		}while(to < voltage);
-	}
-	return transmit_voltage(to, device, channel);
-}
+//void fade(double from, double to, double time, uint8_t device, unsigned int channel){
+//	voltage_in_range(from);
+//	voltage_in_range(to);
+//	auto function_start = std::chrono::high_resolution_clock::now(); 
+//	double voltage;
+//	if(from < to){
+//		do{
+//			voltage = from + (to - from) / time * time_since(function_start); 
+//			if(!(transmit_voltage(voltage, device, channel))){
+//				return 0;
+//			}
+//		}while(voltage < to);
+//	}
+//	else{
+//		do{
+//			voltage = from + (to - from) / time * time_since(function_start); 
+//			if(!(transmit_voltage(voltage, device, channel))){
+//				return 0;
+//			}
+//		}while(to < voltage);
+//	}
+//	transmit_voltage(to, device, channel);
+//}
 
-bool sine_fade(double from, double to, double time, uint8_t device, unsigned int channel){
+void sine_fade(double from, double to, double time, uint8_t device, unsigned int channel){
 	const double pi = 3.14;
 	double amplitude = from - (to + from) / 2.0 ;
 	double offset = (from + to) / 2.0;
 
-	if(voltage_out_of_range(to)){
-		return 0;
-	}
-	if(voltage_out_of_range(from)){
-		return 0;
-	}
+	voltage_in_range(to);
+	voltage_in_range(from);
 	auto function_start = std::chrono::high_resolution_clock::now(); 
 	double voltage = 0;
 	while(time_since(function_start) < time){
 		voltage = offset + amplitude * cos (pi / time * time_since(function_start)); 
-		if(!(transmit_voltage(voltage, device, channel))){
-			return 0;
-		}
+		transmit_voltage(voltage, device, channel);
 	}
-	return transmit_voltage(to, device, channel);
+	transmit_voltage(to, device, channel);
 }
 
 
