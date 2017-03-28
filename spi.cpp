@@ -14,7 +14,6 @@ double time_since(auto input);
 
 //void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
 
-//void sine_fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
 
 double abs(double input){
 	return (input > 0.0)? input: -input;
@@ -47,7 +46,8 @@ class digital_analog_converter{
 	double current_to_voltage(double);
 	double voltage_to_current(double voltage);
 	void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int channel = 0);
-	void transmit_voltage(double voltage, uint8_t device, unsigned int channel);
+	void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int channel = 0);
+	void sine_fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
 
 	private:
 	unsigned int bits;
@@ -78,7 +78,7 @@ void setup(){
 
 void loop(){
 	std::cin >> input;
-//	sine_fade(current_to_voltage(old_input),current_to_voltage(input));
+	dac.sine_fade(dac.current_to_voltage(old_input),dac.current_to_voltage(input));
 	old_input = input;
 }
 
@@ -208,20 +208,21 @@ double time_since(auto input){
 //	transmit_voltage(to, device, channel);
 //}
 
-//void sine_fade(double from, double to, double time, uint8_t device, unsigned int channel){
-//	const double pi = 3.14;
-//	double amplitude = from - (to + from) / 2.0 ;
-//	double offset = (from + to) / 2.0;
-//
-//	voltage_in_range(to);
-//	voltage_in_range(from);
-//	auto function_start = std::chrono::high_resolution_clock::now(); 
-//	double voltage = 0;
-//	while(time_since(function_start) < time){
-//		voltage = offset + amplitude * cos (pi / time * time_since(function_start)); 
-//		transmit_voltage(voltage, device, channel);
-//	}
-//	transmit_voltage(to, device, channel);
-//}
+void digital_analog_converter::sine_fade(double from, double to, double time, uint8_t device, unsigned int channel){
+	voltage_in_range(to);
+	voltage_in_range(from);
+
+	const double pi = 3.14;
+	double amplitude = from - (to + from) / 2.0 ;
+	double offset = (from + to) / 2.0;
+
+	auto function_start = std::chrono::high_resolution_clock::now(); 
+	double voltage = 0;
+	while(time_since(function_start) < time){
+		voltage = offset + amplitude * cos (pi / time * time_since(function_start)); 
+		transmit_voltage(voltage, device, channel);
+	}
+	transmit_voltage(to, device, channel);
+}
 
 
