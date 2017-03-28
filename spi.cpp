@@ -62,8 +62,17 @@ class digital_analog_converter{
 
 bool digital_analog_converter::wiringpi_setup = false;
 
-void setup(){
+digital_analog_converter dac(
+		16,  //bits
+		10,  //min_voltage (dac output at transmitting 0}
+		-10, //max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
+		-5,  //min_voltage_constrain
+		.001,   //max_voltage_contrain
+		6,   //LDAC pin
+		0    //CS channel
+		);
 
+void setup(){
 	std::cout << "Input Current:\n" ; 
 }
 
