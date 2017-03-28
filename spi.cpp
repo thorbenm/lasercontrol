@@ -12,30 +12,14 @@ double map(double,double,double,double,double);
 
 double time_since(auto input);
 
-//void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
-
-
 double abs(double input){
 	return (input > 0.0)? input: -input;
 }
 
-//contrain:
-//double min_voltage = current_to_voltage(100);
-//double max_voltage = .001;
+double current_to_voltage(double);
 
-//DAC Parameter:
-//int bits = 16;
-//double dac_min_voltage = 10; // dac output at transmitting 0;
-//double dac_max_voltage = -10;  // dac output at transmitting 2^bits (hightest value)   BEWARE ORIENTATION!!!
-//const int LDAC = 6; //pi pin used for LDAC control
+double voltage_to_current(double voltage);
 
-
-
-//double voltage_step = abs(dac_min_voltage - dac_max_voltage) / (double) pow(2.0, (double) bits);
-//double current_step = abs(voltage_to_current(voltage_step));
-
-double input = 0;
-double old_input = 0;
 
 class digital_analog_converter{
 	public:
@@ -43,11 +27,9 @@ class digital_analog_converter{
 	void voltage_in_range(double voltage);
 	uint16_t voltage_to_code(double voltage);
 	double code_to_voltage(uint16_t code);
-	double current_to_voltage(double);
-	double voltage_to_current(double voltage);
 	void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int channel = 0);
 	void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int channel = 0);
-	void sine_fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
+	void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
 
 	private:
 	unsigned int bits;
@@ -63,14 +45,18 @@ class digital_analog_converter{
 bool digital_analog_converter::wiringpi_setup = false;
 
 digital_analog_converter dac(
-		16,  //bits
-		10,  //min_voltage (dac output at transmitting 0}
-		-10, //max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
-		-5,  //min_voltage_constrain
-		.001,   //max_voltage_contrain
-		6,   //LDAC pin
-		0    //CS channel
+		16,     //bits
+		10,     //min_voltage (dac output at transmitting 0}
+		-10,    //max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
+		current_to_voltage(100),     //min_voltage_constrain
+		0,      //max_voltage_contrain
+		6,      //LDAC pin
+		0       //CS channel
 		);
+
+
+double input = 0;
+double old_input = 0;
 
 void setup(){
 	std::cout << "Input Current:\n" ; 
@@ -78,7 +64,7 @@ void setup(){
 
 void loop(){
 	std::cin >> input;
-	dac.sine_fade(dac.current_to_voltage(old_input),dac.current_to_voltage(input));
+	dac.fade(current_to_voltage(old_input),current_to_voltage(input));
 	old_input = input;
 }
 
@@ -98,7 +84,7 @@ digital_analog_converter::digital_analog_converter(unsigned int b, double minv, 
 	bits = b;
 	min_voltage = minv;
 	max_voltage = maxv;
-	min_voltage_constrain = maxvc;
+	min_voltage_constrain = minvc;
 	max_voltage_constrain = maxvc;
 	LDAC = l;
 	channel = c; 
@@ -112,19 +98,19 @@ digital_analog_converter::digital_analog_converter(unsigned int b, double minv, 
 	pinMode (LDAC, OUTPUT) ;
 	digitalWrite (LDAC,HIGH);
 
-//	transmit_voltage(0,3,channel)
+	transmit_voltage();
 }
 
 void digital_analog_converter::voltage_in_range(double voltage){
 	if(max_voltage_constrain < voltage || voltage < min_voltage_constrain){
 		std::cerr << "Voltage / Current out of Range\nProgramme will be closed\n";
-//		transmit_voltage(0);
+		transmit_voltage();
 		exit(0);
 	}
 }
 
 uint16_t digital_analog_converter::voltage_to_code(double voltage){
-	double value = map(voltage, min_voltage_constrain, max_voltage_constrain, 0.0 , pow(2.0, (double) bits) - 1.0); 
+	double value = map(voltage, min_voltage, max_voltage, 0.0 , pow(2.0, (double) bits) - 1.0); 
 	uint16_t code = (uint16_t) value;
 	return code;
 }
@@ -135,15 +121,19 @@ double digital_analog_converter::code_to_voltage(uint16_t code){
 	return value;
 }
 
-double digital_analog_converter::current_to_voltage(double current){
+double current_to_voltage(double current){
 	return - current * 0.05246298729 * 50.0 / 53.9; 
 }
 
-double digital_analog_converter::voltage_to_current(double voltage){
+double voltage_to_current(double voltage){
 	return voltage / current_to_voltage(1);
 }
 
 void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned int channel){
+	if(bits != 16){
+		std::cerr << "Programme is hardcoded for bits = 16";
+		exit(0);
+	}
 	voltage_in_range(code_to_voltage(code));
 	uint8_t code1 = code >> 8;
 	uint8_t code2 = code & 0xFF;
@@ -159,56 +149,7 @@ void digital_analog_converter::transmit_voltage(double voltage, uint8_t device, 
 	transmit(voltage_to_code(voltage), device, channel);
 }
 
-double map(double value, double fromLow, double fromHigh, double toLow, double toHigh){
-	if(fromLow == fromHigh){
-		std::cerr << "mapping not possible\n";
-		exit(0);
-	}
-	if(toLow == toHigh){
-		std::cerr << "mapping not possible\n";
-		exit(0);
-	}
-	return value * (toHigh - toLow) / (fromHigh - fromLow) + toHigh - (toHigh - toLow) / (fromHigh - fromLow) * fromHigh; 
-}
-
-double time_since(auto input){
-	// to get time since programme start put
-	// auto start_time = std::chrono::high_resolution_clock::now(); 
-	// at the beginning of your programme
-	//
-	// run as : time_since(start)
-	auto diff = std::chrono::high_resolution_clock::now() - input; // get difference 
-	auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
-	double time1 = (double) nsec.count() / 1000000000.0 ; 
-	return time1;
-}
-
-
-//void fade(double from, double to, double time, uint8_t device, unsigned int channel){
-//	voltage_in_range(from);
-//	voltage_in_range(to);
-//	auto function_start = std::chrono::high_resolution_clock::now(); 
-//	double voltage;
-//	if(from < to){
-//		do{
-//			voltage = from + (to - from) / time * time_since(function_start); 
-//			if(!(transmit_voltage(voltage, device, channel))){
-//				return 0;
-//			}
-//		}while(voltage < to);
-//	}
-//	else{
-//		do{
-//			voltage = from + (to - from) / time * time_since(function_start); 
-//			if(!(transmit_voltage(voltage, device, channel))){
-//				return 0;
-//			}
-//		}while(to < voltage);
-//	}
-//	transmit_voltage(to, device, channel);
-//}
-
-void digital_analog_converter::sine_fade(double from, double to, double time, uint8_t device, unsigned int channel){
+void digital_analog_converter::fade(double from, double to, double time, uint8_t device, unsigned int channel){
 	voltage_in_range(to);
 	voltage_in_range(from);
 
@@ -225,4 +166,22 @@ void digital_analog_converter::sine_fade(double from, double to, double time, ui
 	transmit_voltage(to, device, channel);
 }
 
+double map(double value, double fromLow, double fromHigh, double toLow, double toHigh){
+	if(fromLow == fromHigh || toLow == toHigh){
+		std::cerr << "mapping not possible\n";
+		exit(0);
+	}
+	return value * (toHigh - toLow) / (fromHigh - fromLow) + toHigh - (toHigh - toLow) / (fromHigh - fromLow) * fromHigh; 
+}
 
+double time_since(auto input){
+	// to get time since programme start put
+	// auto start_time = std::chrono::high_resolution_clock::now(); 
+	// at the beginning of your programme
+	//
+	// run as : time_since(start)
+	auto diff = std::chrono::high_resolution_clock::now() - input; // get difference 
+	auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
+	double time1 = (double) nsec.count() / 1.0e9 ; 
+	return time1;
+}
