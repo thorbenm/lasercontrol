@@ -1,5 +1,4 @@
-#ifndef SPI_H
-#define SPI_H
+#pragma once
 
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
@@ -32,5 +31,3 @@ class digital_analog_converter{
 double map(double, double, double, double, double);
 
 double time_since(auto input);
-
-#endif
