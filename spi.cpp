@@ -8,18 +8,13 @@
 
 // header:
 
-double map(double,double,double,double,double);
+double map(double, double, double, double, double);
 
 double time_since(auto input);
 
-double abs(double input){
-	return (input > 0.0)? input: -input;
-}
-
 double current_to_voltage(double);
 
-double voltage_to_current(double voltage);
-
+double voltage_to_current(double);
 
 class digital_analog_converter{
 	public:
@@ -27,9 +22,9 @@ class digital_analog_converter{
 	void voltage_in_range(double voltage);
 	uint16_t voltage_to_code(double voltage);
 	double code_to_voltage(uint16_t code);
-	void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int channel = 0);
-	void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int channel = 0);
-	void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int channel = 0);
+	void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int cs = 0);
+	void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int cs = 0);
+	void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int cs = 0);
 
 	private:
 	unsigned int bits;
@@ -37,21 +32,22 @@ class digital_analog_converter{
 	double max_voltage;  // dac output at transmitting 2^bits (hightest value)   BEWARE ORIENTATION!!!
 	double min_voltage_constrain;
 	double max_voltage_constrain;
-	unsigned int LDAC; //pi pin used for LDAC control
-	unsigned int channel; 
-	static bool wiringpi_setup;
+	unsigned int cs; 
+	static int LDAC; //pi pin used for LDAC control
+	static bool dac_setup;
 };
 
-bool digital_analog_converter::wiringpi_setup = false;
+bool digital_analog_converter::dac_setup = false;
+int  digital_analog_converter::LDAC = 6; //pi pin used for LDAC control (set negative to turn off LDAC)
 
 digital_analog_converter dac(
-		16,     //bits
-		10,     //min_voltage (dac output at transmitting 0}
-		-10,    //max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
-		current_to_voltage(100),     //min_voltage_constrain
-		0,      //max_voltage_contrain
-		6,      //LDAC pin
-		0       //CS channel
+		16,				//bits
+		10.0,				//min_voltage (dac output at transmitting 0}
+		-10.0,				//max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
+		current_to_voltage(100.0),	//min_voltage_constrain
+		0.0,				//max_voltage_contrain
+		6,				//LDAC pin
+		0				//Chip select
 		);
 
 
@@ -87,16 +83,18 @@ digital_analog_converter::digital_analog_converter(unsigned int b, double minv, 
 	min_voltage_constrain = minvc;
 	max_voltage_constrain = maxvc;
 	LDAC = l;
-	channel = c; 
+	cs = c; 
 
-	if (wiringpi_setup == false){
+	if (dac_setup == false){
 		wiringPiSPISetup (0, 32000000) ;
 		wiringPiSetup () ;
-		wiringpi_setup == true;
+		if(LDAC >= 0){
+			pinMode (LDAC, OUTPUT) ;
+			digitalWrite (LDAC,HIGH);
+		}
+		dac_setup == true;
 	}
 
-	pinMode (LDAC, OUTPUT) ;
-	digitalWrite (LDAC,HIGH);
 
 	transmit_voltage();
 }
@@ -129,7 +127,7 @@ double voltage_to_current(double voltage){
 	return voltage / current_to_voltage(1);
 }
 
-void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned int channel){
+void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned int cs){
 	if(bits != 16){
 		std::cerr << "Programme is hardcoded for bits = 16";
 		exit(0);
@@ -137,19 +135,21 @@ void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned 
 	voltage_in_range(code_to_voltage(code));
 	uint8_t code1 = code >> 8;
 	uint8_t code2 = code & 0xFF;
-	wiringPiSPIDataRW (channel, (unsigned char*)&device, sizeof(device));
-	wiringPiSPIDataRW (channel, (unsigned char*)&code1, sizeof(code1));
-	wiringPiSPIDataRW (channel, (unsigned char*)&code2, sizeof(code2));
-	digitalWrite (LDAC,LOW);
-//	delayMicroseconds(1);
-	digitalWrite (LDAC,HIGH);
+	wiringPiSPIDataRW (cs, (unsigned char*)&device, sizeof(device));
+	wiringPiSPIDataRW (cs, (unsigned char*)&code1, sizeof(code1));
+	wiringPiSPIDataRW (cs, (unsigned char*)&code2, sizeof(code2));
+	if(LDAC >= 0){
+		digitalWrite (LDAC,LOW);
+//		delayMicroseconds(1);
+		digitalWrite (LDAC,HIGH);
+	}
 }
 
-void digital_analog_converter::transmit_voltage(double voltage, uint8_t device, unsigned int channel){
-	transmit(voltage_to_code(voltage), device, channel);
+void digital_analog_converter::transmit_voltage(double voltage, uint8_t device, unsigned int cs){
+	transmit(voltage_to_code(voltage), device, cs);
 }
 
-void digital_analog_converter::fade(double from, double to, double time, uint8_t device, unsigned int channel){
+void digital_analog_converter::fade(double from, double to, double time, uint8_t device, unsigned int cs){
 	voltage_in_range(to);
 	voltage_in_range(from);
 
@@ -161,9 +161,9 @@ void digital_analog_converter::fade(double from, double to, double time, uint8_t
 	double voltage = 0;
 	while(time_since(function_start) < time){
 		voltage = offset + amplitude * cos (pi / time * time_since(function_start)); 
-		transmit_voltage(voltage, device, channel);
+		transmit_voltage(voltage, device, cs);
 	}
-	transmit_voltage(to, device, channel);
+	transmit_voltage(to, device, cs);
 }
 
 double map(double value, double fromLow, double fromHigh, double toLow, double toHigh){
