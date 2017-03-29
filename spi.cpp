@@ -18,7 +18,7 @@ double voltage_to_current(double);
 
 class digital_analog_converter{
 	public:
-	digital_analog_converter(unsigned int, double , double, double, double, unsigned int, unsigned int);
+	digital_analog_converter(unsigned int, double , double, double, double, unsigned int);
 	void voltage_in_range(double voltage);
 	uint16_t voltage_to_code(double voltage);
 	double code_to_voltage(uint16_t code);
@@ -38,6 +38,9 @@ class digital_analog_converter{
 };
 
 bool digital_analog_converter::dac_setup = false;
+
+
+
 int  digital_analog_converter::LDAC = 6; //pi pin used for LDAC control (set negative to turn off LDAC)
 
 digital_analog_converter dac(
@@ -45,8 +48,7 @@ digital_analog_converter dac(
 		10.0,				//min_voltage (dac output at transmitting 0}
 		-10.0,				//max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
 		current_to_voltage(100.0),	//min_voltage_constrain
-		0.0,				//max_voltage_contrain
-		6,				//LDAC pin
+		0.001,				//max_voltage_contrain
 		0				//Chip select
 		);
 
@@ -75,14 +77,13 @@ int main (void){
 	return 0 ;
 }
 
-digital_analog_converter::digital_analog_converter(unsigned int b, double minv, double maxv, double minvc, double maxvc, unsigned int l, unsigned int c){
+digital_analog_converter::digital_analog_converter(unsigned int b, double minv, double maxv, double minvc, double maxvc, unsigned int c){
 
 	bits = b;
 	min_voltage = minv;
 	max_voltage = maxv;
 	min_voltage_constrain = minvc;
 	max_voltage_constrain = maxvc;
-	LDAC = l;
 	cs = c; 
 
 	if (dac_setup == false){
@@ -115,7 +116,7 @@ uint16_t digital_analog_converter::voltage_to_code(double voltage){
 
 double digital_analog_converter::code_to_voltage(uint16_t code){
 	double value = (double) code;
-	value = map(value, 0.0 , pow(2.0, (double) bits) - 1.0, min_voltage_constrain , max_voltage_constrain); 
+	value = map(value, 0.0 , pow(2.0, (double) bits) - 1.0, min_voltage , max_voltage); 
 	return value;
 }
 
