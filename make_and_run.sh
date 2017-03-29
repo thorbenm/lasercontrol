@@ -1,2 +1,2 @@
 #!/bin/bash
-g++ -std=c++14 spi.cpp -lwiringPi && ./a.out
+g++ -std=c++14 main.cpp spi.cpp -lwiringPi && ./a.out

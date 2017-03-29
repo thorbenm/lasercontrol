@@ -1,81 +1,7 @@
-#include <wiringPi.h>
-#include <wiringPiSPI.h>
-#include <stdint.h>
-#include <math.h>
-#include <iostream>
-#include <chrono>
-
-
-// header:
-
-double map(double, double, double, double, double);
-
-double time_since(auto input);
-
-double current_to_voltage(double);
-
-double voltage_to_current(double);
-
-class digital_analog_converter{
-	public:
-	digital_analog_converter(unsigned int, double , double, double, double, unsigned int);
-	void voltage_in_range(double voltage);
-	uint16_t voltage_to_code(double voltage);
-	double code_to_voltage(uint16_t code);
-	void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int cs = 0);
-	void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int cs = 0);
-	void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int cs = 0);
-
-	private:
-	unsigned int bits;
-	double min_voltage; // dac output at transmitting 0;
-	double max_voltage;  // dac output at transmitting 2^bits (hightest value)   BEWARE ORIENTATION!!!
-	double min_voltage_constrain;
-	double max_voltage_constrain;
-	unsigned int cs; 
-	static int LDAC; //pi pin used for LDAC control
-	static bool dac_setup;
-};
+#include "spi.h"
+#include "main.h"
 
 bool digital_analog_converter::dac_setup = false;
-
-
-
-int  digital_analog_converter::LDAC = 6; //pi pin used for LDAC control (set negative to turn off LDAC)
-
-digital_analog_converter dac(
-		16,				//bits
-		10.0,				//min_voltage (dac output at transmitting 0}
-		-10.0,				//max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
-		current_to_voltage(100.0),	//min_voltage_constrain
-		0.001,				//max_voltage_contrain
-		0				//Chip select
-		);
-
-
-double input = 0;
-double old_input = 0;
-
-void setup(){
-	std::cout << "Input Current:\n" ; 
-}
-
-void loop(){
-	std::cin >> input;
-	dac.fade(current_to_voltage(old_input),current_to_voltage(input));
-	old_input = input;
-}
-
-int main (void){
-	auto start = std::chrono::high_resolution_clock::now();
-
-	setup();
-
-	for (;;){
-		loop();
-	}
-	return 0 ;
-}
 
 digital_analog_converter::digital_analog_converter(unsigned int b, double minv, double maxv, double minvc, double maxvc, unsigned int c){
 
@@ -120,12 +46,21 @@ double digital_analog_converter::code_to_voltage(uint16_t code){
 	return value;
 }
 
-double current_to_voltage(double current){
-	return - current * 0.05246298729 * 50.0 / 53.9; 
-}
+void digital_analog_converter::fade(double from, double to, double time, uint8_t device, unsigned int cs){
+	voltage_in_range(to);
+	voltage_in_range(from);
 
-double voltage_to_current(double voltage){
-	return voltage / current_to_voltage(1);
+	const double pi = 3.14;
+	double amplitude = from - (to + from) / 2.0 ;
+	double offset = (from + to) / 2.0;
+
+	auto function_start = std::chrono::high_resolution_clock::now(); 
+	double voltage = 0;
+	while(time_since(function_start) < time){
+		voltage = offset + amplitude * cos (pi / time * time_since(function_start)); 
+		transmit_voltage(voltage, device, cs);
+	}
+	transmit_voltage(to, device, cs);
 }
 
 void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned int cs){
@@ -148,23 +83,6 @@ void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned 
 
 void digital_analog_converter::transmit_voltage(double voltage, uint8_t device, unsigned int cs){
 	transmit(voltage_to_code(voltage), device, cs);
-}
-
-void digital_analog_converter::fade(double from, double to, double time, uint8_t device, unsigned int cs){
-	voltage_in_range(to);
-	voltage_in_range(from);
-
-	const double pi = 3.14;
-	double amplitude = from - (to + from) / 2.0 ;
-	double offset = (from + to) / 2.0;
-
-	auto function_start = std::chrono::high_resolution_clock::now(); 
-	double voltage = 0;
-	while(time_since(function_start) < time){
-		voltage = offset + amplitude * cos (pi / time * time_since(function_start)); 
-		transmit_voltage(voltage, device, cs);
-	}
-	transmit_voltage(to, device, cs);
 }
 
 double map(double value, double fromLow, double fromHigh, double toLow, double toHigh){
