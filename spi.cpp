@@ -1,7 +1,9 @@
 #include "spi.h"
 #include "main.h"
 
-bool digital_analog_converter::dac_setup = false;
+bool spi_setup[2] = {false, false};
+bool LDAC_setup = false;
+//int LDAC = 6;
 
 digital_analog_converter::digital_analog_converter(unsigned int b, double minv, double maxv, double minvc, double maxvc, unsigned int c){
 
@@ -12,14 +14,18 @@ digital_analog_converter::digital_analog_converter(unsigned int b, double minv, 
 	max_voltage_constrain = maxvc;
 	cs = c; 
 
-	if (dac_setup == false){
-		wiringPiSPISetup (0, 32000000) ;
+	if (spi_setup[c] == false){
+		wiringPiSPISetup (c, 32000000) ;
 		wiringPiSetup () ;
-		if(LDAC >= 0){
-			pinMode (LDAC, OUTPUT) ;
-			digitalWrite (LDAC,HIGH);
-		}
-		dac_setup == true;
+		spi_setup[c] = true;
+	}else{
+		std::cerr << "chip select " << c << " is already in use"; 
+		exit(0);
+	}
+	if(LDAC >= 0 && LDAC_setup == false){
+		pinMode (LDAC, OUTPUT) ;
+		digitalWrite (LDAC,HIGH);
+		LDAC_setup = true;
 	}
 
 
@@ -103,4 +109,36 @@ double time_since(auto input){
 	auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
 	double time1 = (double) nsec.count() / 1.0e9 ; 
 	return time1;
+}
+
+analog_digital_converter::analog_digital_converter(unsigned int b, double minv, double maxv, unsigned int c){
+
+	bits = b;
+	min_voltage = minv;
+	max_voltage = maxv;
+	cs = c; 
+
+	if (spi_setup[c] == false){
+		wiringPiSPISetup (c, 488000) ;
+		wiringPiSetup () ;
+		spi_setup[c] = true;
+	}else{
+		std::cerr << "chip select " << c << " is already in use"; 
+		exit(0);
+	}
+	
+}
+
+uint16_t analog_digital_converter::read(uint8_t channel, unsigned int cs){
+	uint16_t result = 0;
+	uint8_t code1 = 1;
+	uint8_t code2 = (8+channel) << 4;
+	uint8_t code3 = 0;
+	uint8_t code[3] = {code1,code2,code3};
+	wiringPiSPIDataRW (cs, (unsigned char*)code, sizeof(code));
+	code[1] = code[1] & 0b00001111;
+	result = code[1];
+	result = result << 8;
+	result = result | code[2]; 
+	return result;
 }
