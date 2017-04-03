@@ -30,7 +30,7 @@ void loop(){
 //	std::cin >> input;
 //	dac.fade(current_to_voltage(old_input),current_to_voltage(input));
 //	old_input = input;
-	std::cout << mcp.code_to_voltage(mcp.read()) << std::endl;
+	std::cout << mcp.code_to_voltage(mcp.read()) * 1000.0 << " mV" << std::endl;
 	delay(1000);
 }
 

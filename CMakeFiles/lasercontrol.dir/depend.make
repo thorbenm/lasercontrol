@@ -5,7 +5,6 @@ CMakeFiles/lasercontrol.dir/main.cpp.o: main.cpp
 CMakeFiles/lasercontrol.dir/main.cpp.o: main.h
 CMakeFiles/lasercontrol.dir/main.cpp.o: spi.h
 
-CMakeFiles/lasercontrol.dir/spi.cpp.o: main.h
 CMakeFiles/lasercontrol.dir/spi.cpp.o: spi.cpp
 CMakeFiles/lasercontrol.dir/spi.cpp.o: spi.h
 

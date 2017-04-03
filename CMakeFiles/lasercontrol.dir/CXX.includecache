@@ -19,8 +19,6 @@ spi.h
 /home/pi/programming/lasercontrol/spi.cpp
 spi.h
 /home/pi/programming/lasercontrol/spi.h
-main.h
-/home/pi/programming/lasercontrol/main.h
 
 /home/pi/programming/lasercontrol/spi.h
 wiringPi.h
@@ -32,5 +30,7 @@ stdint.h
 math.h
 -
 chrono
+-
+iostream
 -
 

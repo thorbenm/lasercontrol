@@ -1,5 +1,4 @@
 #include "spi.h"
-#include "main.h"
 
 bool spi_setup[2] = {false, false};
 bool LDAC_setup = false;

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <chrono>
+#include <iostream>
 
 class digital_analog_converter{
 	public:
@@ -27,6 +28,7 @@ class digital_analog_converter{
 };
 
 class analog_digital_converter{
+	//tested with MCP3008
 	public:
 	analog_digital_converter(unsigned int, double, double, unsigned int);
 	double code_to_voltage(uint16_t code);
