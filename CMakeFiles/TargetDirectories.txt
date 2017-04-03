@@ -1,0 +1,3 @@
+/home/pi/programming/lasercontrol/CMakeFiles/edit_cache.dir
+/home/pi/programming/lasercontrol/CMakeFiles/rebuild_cache.dir
+/home/pi/programming/lasercontrol/CMakeFiles/lasercontrol.dir

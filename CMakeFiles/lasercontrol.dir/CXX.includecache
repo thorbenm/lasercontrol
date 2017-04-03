@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/pi/programming/lasercontrol/main.cpp
+main.h
+/home/pi/programming/lasercontrol/main.h
+
+/home/pi/programming/lasercontrol/main.h
+iostream
+-
+spi.h
+/home/pi/programming/lasercontrol/spi.h
+
+/home/pi/programming/lasercontrol/spi.cpp
+spi.h
+/home/pi/programming/lasercontrol/spi.h
+main.h
+/home/pi/programming/lasercontrol/main.h
+
+/home/pi/programming/lasercontrol/spi.h
+wiringPi.h
+-
+wiringPiSPI.h
+-
+stdint.h
+-
+math.h
+-
+chrono
+-
+

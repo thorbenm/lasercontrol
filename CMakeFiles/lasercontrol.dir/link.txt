@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/lasercontrol.dir/main.cpp.o CMakeFiles/lasercontrol.dir/spi.cpp.o  -o lasercontrol -rdynamic -lm -lwiringPi 

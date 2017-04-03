@@ -29,19 +29,13 @@ class digital_analog_converter{
 class analog_digital_converter{
 	public:
 	analog_digital_converter(unsigned int, double, double, unsigned int);
-//	void voltage_in_range(double voltage);
-//	uint16_t voltage_to_code(double voltage);
-//	double code_to_voltage(uint16_t code);
+	double code_to_voltage(uint16_t code);
 	uint16_t read(uint8_t channel = 0, unsigned int cs = 1);
-//	void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int cs = 0);
-//	void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int cs = 0);
 
 	private:
 	unsigned int bits;
 	double min_voltage; // dac output at transmitting 0;
 	double max_voltage;  // dac output at transmitting 2^bits-1 (hightest value)   BEWARE ORIENTATION!!!
-//	double min_voltage_constrain;
-//	double max_voltage_constrain;
 	unsigned int cs; 
 };
 
