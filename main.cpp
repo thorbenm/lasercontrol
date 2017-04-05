@@ -3,7 +3,7 @@
 int digital_analog_converter::LDAC = 6; //pi pin used for LDAC control (set negative to turn off LDAC)
 
 digital_analog_converter dac(
-		500000,				//clock speed
+		32.0 * MHz,			//clock speed
 		16,				//bits
 		10.0,				//min_voltage (dac output at transmitting 0}
 		-10.0,				//max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
@@ -13,7 +13,7 @@ digital_analog_converter dac(
 		);
 
 analog_digital_converter mcp(
-		500000,				//clock speed
+		0.5 * MHz,			//clock speed
 		10,				//bits
 		0.0,				//min_voltage (dac output at transmitting 0}
 		3.3,				//max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
@@ -26,6 +26,7 @@ double old_input = 0;
 
 void setup(){
 //	std::cout << "Input Current:\n" ; 
+	std::cout << "voltage_step = " << dac.voltage_step() << std::endl;
 }
 
 void loop(){
@@ -33,7 +34,7 @@ void loop(){
 //	dac.fade(current_to_voltage(old_input),current_to_voltage(input));
 //	std::cout << "Your input was " << dac.last_value() << std::endl;
 //	old_input = input;
-	std::cout << mcp.read_voltage() * 1000.0 << " mV" << std::endl;
+//	std::cout << mcp.read_voltage() * 1000.0 << " mV" << std::endl;
 	delay(1000);
 }
 

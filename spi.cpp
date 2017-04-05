@@ -27,6 +27,7 @@ digital_analog_converter::digital_analog_converter(unsigned int clock_s, unsigne
 		LDAC_setup = true;
 	}
 
+	voltage_step2 = fabs(max_voltage - min_voltage) / pow(2.0, (double) bits);
 
 	transmit_voltage();
 }
@@ -93,6 +94,10 @@ void digital_analog_converter::transmit_voltage(double voltage, uint8_t device, 
 
 uint16_t digital_analog_converter::last_value(){
 	return last_value2;
+}
+
+double digital_analog_converter::voltage_step(){
+	return voltage_step2;
 }
 
 double map(double value, double fromLow, double fromHigh, double toLow, double toHigh){
