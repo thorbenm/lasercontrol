@@ -16,6 +16,7 @@ class digital_analog_converter{
 	void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int cs = 0);
 	void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int cs = 0);
 	void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int cs = 0);
+	uint16_t last_value();
 
 	private:
 	unsigned int bits;
@@ -25,6 +26,7 @@ class digital_analog_converter{
 	double max_voltage_constrain;
 	unsigned int cs; 
 	static int LDAC; // pi pin used for LDAC control
+	uint16_t last_value2;
 };
 
 class analog_digital_converter{

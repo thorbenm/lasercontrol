@@ -84,10 +84,15 @@ void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned 
 //		delayMicroseconds(1);
 		digitalWrite (LDAC,HIGH);
 	}
+	last_value2 = code;
 }
 
 void digital_analog_converter::transmit_voltage(double voltage, uint8_t device, unsigned int cs){
 	transmit(voltage_to_code(voltage), device, cs);
+}
+
+uint16_t digital_analog_converter::last_value(){
+	return last_value2;
 }
 
 double map(double value, double fromLow, double fromHigh, double toLow, double toHigh){
