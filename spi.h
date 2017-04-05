@@ -9,7 +9,7 @@
 
 class digital_analog_converter{
 	public:
-	digital_analog_converter(unsigned int, double , double, double, double, unsigned int);
+	digital_analog_converter(unsigned int, unsigned int, double , double, double, double, unsigned int);
 	void voltage_in_range(double voltage);
 	uint16_t voltage_to_code(double voltage);
 	double code_to_voltage(uint16_t code);
@@ -19,6 +19,7 @@ class digital_analog_converter{
 	uint16_t last_value();
 
 	private:
+	unsigned int clock_speed;
 	unsigned int bits;
 	double min_voltage; // dac output at transmitting 0;
 	double max_voltage;  // dac output at transmitting 2^bits (hightest value)   BEWARE ORIENTATION!!!
@@ -32,12 +33,13 @@ class digital_analog_converter{
 class analog_digital_converter{
 	//tested with MCP3008
 	public:
-	analog_digital_converter(unsigned int, double, double, unsigned int);
+	analog_digital_converter(unsigned int, unsigned int, double, double, unsigned int);
 	double code_to_voltage(uint16_t code);
 	uint16_t read(uint8_t channel = 0, unsigned int cs = 1);
 	double read_voltage(uint8_t channel = 0, unsigned int cs = 1);
 
 	private:
+	unsigned int clock_speed;
 	unsigned int bits;
 	double min_voltage; // dac output at transmitting 0;
 	double max_voltage;  // dac output at transmitting 2^bits-1 (hightest value)   BEWARE ORIENTATION!!!

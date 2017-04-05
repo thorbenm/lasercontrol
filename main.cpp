@@ -3,6 +3,7 @@
 int digital_analog_converter::LDAC = 6; //pi pin used for LDAC control (set negative to turn off LDAC)
 
 digital_analog_converter dac(
+		500000,				//clock speed
 		16,				//bits
 		10.0,				//min_voltage (dac output at transmitting 0}
 		-10.0,				//max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)
@@ -12,6 +13,7 @@ digital_analog_converter dac(
 		);
 
 analog_digital_converter mcp(
+		500000,				//clock speed
 		10,				//bits
 		0.0,				//min_voltage (dac output at transmitting 0}
 		3.3,				//max_voltage (dac output at transmitting 2^bits-1 BEWARE ORIENTATION!!!)

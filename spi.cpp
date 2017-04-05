@@ -4,8 +4,8 @@ bool spi_setup[2] = {false, false};
 bool LDAC_setup = false;
 //int LDAC = 6;
 
-digital_analog_converter::digital_analog_converter(unsigned int b, double minv, double maxv, double minvc, double maxvc, unsigned int c){
-
+digital_analog_converter::digital_analog_converter(unsigned int clock_s, unsigned int b, double minv, double maxv, double minvc, double maxvc, unsigned int c){
+	clock_speed = clock_s;
 	bits = b;
 	min_voltage = minv;
 	max_voltage = maxv;
@@ -14,7 +14,7 @@ digital_analog_converter::digital_analog_converter(unsigned int b, double minv, 
 	cs = c; 
 
 	if (spi_setup[c] == false){
-		wiringPiSPISetup (c, 32000000) ;
+		wiringPiSPISetup (c, clock_speed) ;
 		wiringPiSetup () ;
 		spi_setup[c] = true;
 	}else{
@@ -115,15 +115,16 @@ double time_since(auto input){
 	return time1;
 }
 
-analog_digital_converter::analog_digital_converter(unsigned int b, double minv, double maxv, unsigned int c){
+analog_digital_converter::analog_digital_converter(unsigned int clock_s, unsigned int b, double minv, double maxv, unsigned int c){
 
+	clock_speed = clock_s;
 	bits = b;
 	min_voltage = minv;
 	max_voltage = maxv;
 	cs = c; 
 
 	if (spi_setup[c] == false){
-		wiringPiSPISetup (c, 488000) ;
+		wiringPiSPISetup (c, clock_speed) ;
 		wiringPiSetup () ;
 		spi_setup[c] = true;
 	}else{
