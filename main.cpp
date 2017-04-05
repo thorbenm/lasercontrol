@@ -24,7 +24,7 @@ analog_digital_converter mcp(
 double input = 0;
 double old_input = 0;
 
-const double current_step = voltage_to_current(dac.voltage_step());
+const double current_step = fabs(voltage_to_current(dac.voltage_step()));
 
 void setup(){
 //	std::cout << "Input Current:\n" ; 

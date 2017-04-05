@@ -27,7 +27,7 @@ digital_analog_converter::digital_analog_converter(unsigned int clock_s, unsigne
 		LDAC_setup = true;
 	}
 
-	voltage_step2 = (max_voltage - min_voltage) / pow(2.0, (double) bits);
+	voltage_step2 = fabs(max_voltage - min_voltage) / pow(2.0, (double) bits);
 
 	transmit_voltage();
 }
