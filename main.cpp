@@ -23,15 +23,15 @@ double input = 0;
 double old_input = 0;
 
 void setup(){
-	std::cout << "Input Current:\n" ; 
+//	std::cout << "Input Current:\n" ; 
 }
 
 void loop(){
-	std::cin >> input;
-	dac.fade(current_to_voltage(old_input),current_to_voltage(input));
-	std::cout << "Your input was " << dac.last_value() << std::endl;
-	old_input = input;
-//	std::cout << mcp.code_to_voltage(mcp.read()) * 1000.0 << " mV" << std::endl;
+//	std::cin >> input;
+//	dac.fade(current_to_voltage(old_input),current_to_voltage(input));
+//	std::cout << "Your input was " << dac.last_value() << std::endl;
+//	old_input = input;
+	std::cout << mcp.read_voltage() * 1000.0 << " mV" << std::endl;
 	delay(1000);
 }
 

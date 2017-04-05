@@ -150,3 +150,8 @@ uint16_t analog_digital_converter::read(uint8_t channel, unsigned int cs){
 double analog_digital_converter::code_to_voltage(uint16_t code){
 	return map((double) code, 0.0, pow(2.0, (double) bits) - 1.0, min_voltage, max_voltage);
 }
+
+double analog_digital_converter::read_voltage(uint8_t channel, unsigned int cs){
+	return code_to_voltage(read(channel,cs));
+}
+

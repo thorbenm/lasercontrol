@@ -35,6 +35,7 @@ class analog_digital_converter{
 	analog_digital_converter(unsigned int, double, double, unsigned int);
 	double code_to_voltage(uint16_t code);
 	uint16_t read(uint8_t channel = 0, unsigned int cs = 1);
+	double read_voltage(uint8_t channel = 0, unsigned int cs = 1);
 
 	private:
 	unsigned int bits;
