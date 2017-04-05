@@ -21,24 +21,33 @@ analog_digital_converter mcp(
 		);
 
 
-double input = 0;
-double old_input = 0;
-
 const double current_step = fabs(voltage_to_current(dac.voltage_step()));
+double value = 0;
+double current = 50;
+
+double target = 0;
 
 void setup(){
 //	std::cout << "Input Current:\n" ; 
-	std::cout << "voltage_step = " << dac.voltage_step() << std::endl;
-	std::cout << "current_step = " << current_step << std::endl;
+//	std::cout << "voltage_step = " << dac.voltage_step() << std::endl;
+//	std::cout << "current_step = " << current_step << std::endl;
 }
 
 void loop(){
-//	std::cin >> input;
-//	dac.fade(current_to_voltage(old_input),current_to_voltage(input));
-//	std::cout << "Your input was " << dac.last_value() << std::endl;
-//	old_input = input;
-//	std::cout << mcp.read_voltage() * 1000.0 << " mV" << std::endl;
-	delay(1000);
+	std::cout << std::endl;
+	value = mcp.read_voltage();
+	std::cout << "value: " << value * 1000.0 << " mV" << std::endl;
+	if(value < target){
+		current += current_step;
+		std::cout << "=> current++ \n";
+	}
+	if(value > target){
+		current -= current_step;
+		std::cout << "=> current-- \n";
+	}
+	dac.transmit_voltage(current_to_voltage(current));
+	std::cout << "current = " << current << " mA" << std::endl;
+	delay(5);
 }
 
 int main (void){
