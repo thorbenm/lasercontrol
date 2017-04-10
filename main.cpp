@@ -22,10 +22,10 @@ analog_digital_converter mcp(
 
 
 const double current_step = fabs(voltage_to_current(dac.voltage_step()));
-double value = 0;
-double current = 50;
+double value = 0.0;
+double current = 34.0;
 
-double target = 0;
+double target = 1.0;
 
 void setup(){
 //	std::cout << "Input Current:\n" ; 
@@ -34,29 +34,34 @@ void setup(){
 }
 
 void loop(){
-	std::cout << std::endl;
 	value = mcp.read_voltage();
-	std::cout << "value: " << value * 1000.0 << " mV" << std::endl;
 	if(value < target){
 		current += current_step;
-		std::cout << "=> current++ \n";
 	}
 	if(value > target){
 		current -= current_step;
-		std::cout << "=> current-- \n";
 	}
 	dac.transmit_voltage(current_to_voltage(current));
-	std::cout << "current = " << current << " mA" << std::endl;
 	delay(5);
 }
 
+double every=1.0; // seconds
+void routine(){
+	std::cout << std::endl;
+	std::cout << "value =   " << value * 1000.0 << " mV" << std::endl;
+	std::cout << "current = " << current << " mA" << std::endl;
+}
+
 int main (void){
-	auto start = std::chrono::high_resolution_clock::now();
-
 	setup();
-
+	auto loop_start = std::chrono::high_resolution_clock::now();
+	loop();
+	double loop_duration = time_since(loop_start);
 	for (;;){
-		loop();
+		for(int j = 0; j< every / loop_duration ; j++){
+			loop();
+		}
+		routine();
 	}
 	return 0 ;
 }

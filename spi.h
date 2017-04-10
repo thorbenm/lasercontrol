@@ -14,8 +14,8 @@ class digital_analog_converter{
 	uint16_t voltage_to_code(double voltage);
 	double code_to_voltage(uint16_t code);
 	void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int cs = 0);
-	void transmit_voltage(double voltage = 0, uint8_t device = 3, unsigned int cs = 0);
-	void fade(double from, double to, double time = 1, uint8_t device = 3, unsigned int cs = 0);
+	void transmit_voltage(double voltage = 0, uint8_t device = 0, unsigned int cs = 0);
+	void fade(double from, double to, double time = 1, uint8_t device = 0, unsigned int cs = 0);
 	uint16_t last_value();
 	double voltage_step();
 
