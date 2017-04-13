@@ -27,7 +27,7 @@ digital_analog_converter::digital_analog_converter(unsigned int clock_s, unsigne
 		LDAC_setup = true;
 	}
 
-	voltage_step2 = fabs(max_voltage - min_voltage) / pow(2.0, (double) bits);
+	voltage_step = fabs(max_voltage - min_voltage) / pow(2.0, (double) bits);
 
 	transmit_voltage();
 }
@@ -85,19 +85,19 @@ void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned 
 //		delayMicroseconds(1);
 		digitalWrite (LDAC,HIGH);
 	}
-	last_value2 = code;
+	last_value = code;
 }
 
 void digital_analog_converter::transmit_voltage(double voltage, uint8_t device, unsigned int cs){
 	transmit(voltage_to_code(voltage), device, cs);
 }
 
-uint16_t digital_analog_converter::last_value(){
-	return last_value2;
+uint16_t digital_analog_converter::get_last_value(){
+	return last_value;
 }
 
-double digital_analog_converter::voltage_step(){
-	return voltage_step2;
+double digital_analog_converter::get_voltage_step(){
+	return voltage_step;
 }
 
 double map(double value, double fromLow, double fromHigh, double toLow, double toHigh){
