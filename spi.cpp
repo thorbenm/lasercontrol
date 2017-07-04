@@ -32,11 +32,17 @@ digital_analog_converter::digital_analog_converter(unsigned int clock_s, unsigne
 	transmit_voltage();
 }
 
-void digital_analog_converter::voltage_in_range(double voltage){
-	if(max_voltage_constrain < voltage || voltage < min_voltage_constrain){
-		std::cerr << "Voltage / Current out of Range\nProgramme will be closed\n";
-		transmit_voltage();
-		exit(0);
+double digital_analog_converter::voltage_in_range(double voltage){
+	if(max_voltage_constrain < voltage){
+		std::cerr << "Voltage out of Range (high)\n";
+		return max_voltage_constrain;
+//		exit(0);
+	}
+	if(voltage < min_voltage_constrain){
+		std::cerr << "Voltage out of Range (low)\n";
+		return min_voltage_constrain;
+//		exit(0);
+	return voltage;
 	}
 }
 
@@ -53,8 +59,8 @@ double digital_analog_converter::code_to_voltage(uint16_t code){
 }
 
 void digital_analog_converter::fade(double from, double to, double time, uint8_t device, unsigned int cs){
-	voltage_in_range(to);
-	voltage_in_range(from);
+	to = voltage_in_range(to);
+	from = voltage_in_range(from);
 
 	const double pi = 3.14;
 	double amplitude = from - (to + from) / 2.0 ;
@@ -74,7 +80,7 @@ void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned 
 		std::cerr << "Programme is hardcoded for bits = 16";
 		exit(0);
 	}
-	voltage_in_range(code_to_voltage(code));
+	code = voltage_to_code(voltage_in_range(code_to_voltage(code)));
 	uint8_t code1 = code >> 8;
 	uint8_t code2 = code & 0xFF;
 	wiringPiSPIDataRW (cs, (unsigned char*)&device, sizeof(device));
@@ -89,6 +95,7 @@ void digital_analog_converter::transmit(uint16_t code, uint8_t device, unsigned 
 }
 
 void digital_analog_converter::transmit_voltage(double voltage, uint8_t device, unsigned int cs){
+	voltage = voltage_in_range(voltage);
 	transmit(voltage_to_code(voltage), device, cs);
 }
 

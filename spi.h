@@ -10,7 +10,7 @@
 class digital_analog_converter{
 	public:
 	digital_analog_converter(unsigned int, unsigned int, double , double, double, double, unsigned int);
-	void voltage_in_range(double voltage);
+	double voltage_in_range(double voltage);
 	uint16_t voltage_to_code(double voltage);
 	double code_to_voltage(uint16_t code);
 	void transmit(uint16_t code = 0, uint8_t device = 3, unsigned int cs = 0);

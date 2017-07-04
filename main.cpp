@@ -58,10 +58,10 @@ int main (void){
 	loop();
 	double loop_duration = time_since(loop_start);
 	for (;;){
-		for(int j = 0; j < every / loop_duration ; j++){
+//		for(int j = 0; j < every / loop_duration ; j++){
 			loop();
-		}
-		routine();
+//		}
+//		routine();
 	}
 	return 0 ;
 }
